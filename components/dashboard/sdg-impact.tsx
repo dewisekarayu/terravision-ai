@@ -2,15 +2,49 @@
 
 import React from "react";
 import { GlassCard } from "./glass-card";
-import { Globe2 } from "lucide-react";
+import { Globe2, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWithApiKey } from "@/lib/fetcher";
+
+interface SdgMetric {
+  goal: number;
+  title: string;
+  indicators: Record<string, number>;
+}
+
+interface SdgResponse {
+  metrics: SdgMetric[];
+}
 
 export function SdgImpact() {
+  const { data: sdgData, isLoading } = useQuery<SdgResponse>({
+    queryKey: ["sdgImpactMetrics"],
+    queryFn: () => fetchWithApiKey("/api/sdgs"),
+  });
+
+  if (isLoading) {
+    return (
+      <GlassCard className="flex items-center justify-center p-6 min-h-[200px]">
+        <Loader2 className="h-6 w-6 text-cyan-500 animate-spin" />
+      </GlassCard>
+    );
+  }
+
+  const metrics = sdgData?.metrics || [];
+
+  const getGoalProgress = (goalNum: number) => {
+    const metric = metrics.find((m) => m.goal === goalNum);
+    if (!metric) return "0%";
+    const firstVal = Object.values(metric.indicators)[0];
+    return `${Math.round(firstVal * 100)}%`;
+  };
+
   const sdgs = [
     {
       id: "SDG 9",
       title: "Industry & Infra",
       target: "Resilient Smart Grid",
-      achieved: "82%",
+      achieved: getGoalProgress(9),
       color: "border-emerald-500/20 text-emerald-400 bg-emerald-950/10",
       desc: "Integrate renewable solar/wind power hubs."
     },
@@ -18,7 +52,7 @@ export function SdgImpact() {
       id: "SDG 11",
       title: "Sustainable Cities",
       target: "Green Coverage Index",
-      achieved: "64%",
+      achieved: getGoalProgress(11),
       color: "border-cyan-500/20 text-cyan-400 bg-cyan-950/10",
       desc: "Ensure 30%+ urban green areas."
     },
@@ -26,7 +60,7 @@ export function SdgImpact() {
       id: "SDG 13",
       title: "Climate Action",
       target: "CO2 Abatement Rate",
-      achieved: "75%",
+      achieved: getGoalProgress(13),
       color: "border-indigo-500/20 text-indigo-400 bg-indigo-950/10",
       desc: "Reduce operational municipal carbon emissions."
     }

@@ -7,14 +7,15 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     status: "active",
-    scenarios: ["normal", "rainfall", "flood", "heatwave", "pollution", "earthquake"],
-    activeAlerts: [
-      {
-        id: "alert-1",
-        type: "flood",
-        severity: "critical",
-        message: "River basin level exceeds 1.8 meters.",
-      },
-    ],
+    sensors: {
+      temperature: "28.4 °C",
+      humidity: "72%",
+      windSpeed: "14 km/h",
+      co2Level: "412 ppm",
+    },
+    projections: {
+      temperatureRise: "+1.2 °C by 2030",
+      seaLevelRise: "+0.15 m by 2050",
+    },
   });
 }

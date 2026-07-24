@@ -3,13 +3,13 @@
 import React from "react";
 import { useStore, DisasterScenario } from "@/store/use-store";
 import { GlassCard } from "./glass-card";
-import { ShieldCheck, CloudRain, ShieldAlert, Flame, EyeOff, Radio } from "lucide-react";
+import { ShieldCheck, CloudRain, ShieldAlert, Flame, EyeOff, Radio, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function DisasterControls() {
   const { disasterScenario, setDisasterScenario } = useStore();
 
-  const scenarios: { id: DisasterScenario; label: string; icon: any }[] = [
+  const scenarios: { id: DisasterScenario; label: string; icon: LucideIcon }[] = [
     { id: "normal", label: "Normal Operations", icon: ShieldCheck },
     { id: "rainfall", label: "Heavy Rainfall", icon: CloudRain },
     { id: "flood", label: "River Flood Crisis", icon: ShieldAlert },

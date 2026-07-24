@@ -14,7 +14,7 @@ export function Header() {
   };
 
   return (
-    <header className="glass-panel rounded-2xl h-20 px-6 flex items-center justify-between gap-6 z-30">
+    <header className="relative glass-panel rounded-2xl h-20 px-6 flex items-center justify-between gap-6 z-30">
       {/* Title / Status */}
       <div className="flex items-center gap-4">
         <div>

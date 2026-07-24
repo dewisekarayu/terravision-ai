@@ -1,7 +1,6 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
@@ -53,11 +52,11 @@ export function Sidebar() {
             const Icon = item.icon;
 
             return (
-              <Link
+              <a
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "relative flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all group duration-200",
+                  "relative flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-medium transition-all group duration-200 cursor-pointer z-10",
                   isActive
                     ? "text-white"
                     : "text-slate-400 hover:text-white hover:bg-slate-800/30"
@@ -77,7 +76,7 @@ export function Sidebar() {
                   )}
                 />
                 <span>{item.label}</span>
-              </Link>
+              </a>
             );
           })}
         </nav>

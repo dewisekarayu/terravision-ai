@@ -2,13 +2,42 @@
 
 import React from "react";
 import { GlassCard } from "./glass-card";
-import { BrainCircuit, ShieldCheck } from "lucide-react";
+import { BrainCircuit, ShieldCheck, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWithApiKey } from "@/lib/fetcher";
+
+interface AiResponse {
+  predictions: {
+    flood: number;
+    heatwave: number;
+    pollution: number;
+  };
+  mitigation: string;
+}
 
 export function AiPredictor() {
+  const { data: aiData, isLoading } = useQuery<AiResponse>({
+    queryKey: ["aiPredictions"],
+    queryFn: () => fetchWithApiKey("/api/ai"),
+  });
+
+  if (isLoading) {
+    return (
+      <GlassCard className="flex items-center justify-center p-6 min-h-[200px]">
+        <Loader2 className="h-6 w-6 text-cyan-500 animate-spin" />
+      </GlassCard>
+    );
+  }
+
+  const floodProb = aiData ? `${Math.round(aiData.predictions.flood * 100)}%` : "74%";
+  const heatwaveRisk = aiData ? `${Math.round(aiData.predictions.heatwave * 100)}%` : "28%";
+  const pollutionTrend = aiData ? `${Math.round(aiData.predictions.pollution * 100)}%` : "65%";
+  const actionPlan = aiData?.mitigation || "Activate flood barriers in Lowlands Zone-B; redirect traffic routing to elevated highway sections.";
+
   const predictions = [
-    { hazard: "Flood Prob.", conf: "74%", level: "High Alert", color: "text-amber-400" },
-    { hazard: "Heatwave Risk", conf: "28%", level: "Low Risk", color: "text-emerald-400" },
-    { hazard: "Air Pollution", conf: "65%", level: "Moderate", color: "text-cyan-400" },
+    { hazard: "Flood Prob.", conf: floodProb, level: aiData && aiData.predictions.flood > 0.5 ? "High Alert" : "Normal", color: "text-amber-400" },
+    { hazard: "Heatwave Risk", conf: heatwaveRisk, level: "Low Risk", color: "text-emerald-400" },
+    { hazard: "Air Pollution", conf: pollutionTrend, level: "Moderate", color: "text-cyan-400" },
   ];
 
   return (
@@ -46,7 +75,7 @@ export function AiPredictor() {
           <div className="flex items-start gap-2 bg-cyan-950/20 border border-cyan-500/20 rounded-xl p-2.5">
             <ShieldCheck className="h-4 w-4 text-cyan-400 shrink-0 mt-0.5" />
             <p className="text-[10px] text-slate-300 leading-normal">
-              Activate flood barriers in Lowlands Zone-B; redirect traffic routing to elevated highway sections.
+              {actionPlan}
             </p>
           </div>
         </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { Shield, ArrowRight } from "lucide-react";
 
 export default function LandingPage() {
@@ -67,14 +66,15 @@ export default function LandingPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
+          className="relative z-30"
         >
-          <Link
+          <a
             href="/dashboard/overview"
-            className="group flex items-center gap-2.5 px-8 py-4 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-bold text-sm tracking-wide shadow-lg hover:shadow-xl transition-all duration-200"
+            className="group flex items-center gap-2.5 px-8 py-4 rounded-xl bg-white hover:bg-slate-200 text-slate-950 font-bold text-sm tracking-wide shadow-lg hover:shadow-xl transition-all duration-200 cursor-pointer relative z-30"
           >
             <span>LAUNCH PLATFORM</span>
             <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
-          </Link>
+          </a>
         </motion.div>
       </div>
 

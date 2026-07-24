@@ -2,9 +2,51 @@
 
 import React from "react";
 import { GlassCard } from "./glass-card";
-import { Wind, Leaf, Droplets, Zap } from "lucide-react";
+import { Wind, Leaf, Droplets, Zap, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { fetchWithApiKey } from "@/lib/fetcher";
+
+interface ClimateResponse {
+  sensors: {
+    co2Level: string;
+    temperature: string;
+    humidity: string;
+  };
+}
+
+interface CityResponse {
+  networks: {
+    electricity: string;
+    water: string;
+  };
+}
 
 export function KpiGrid() {
+  const { data: climateData, isLoading: climateLoading } = useQuery<ClimateResponse>({
+    queryKey: ["climateData"],
+    queryFn: () => fetchWithApiKey("/api/climate"),
+  });
+
+  const { data: cityData, isLoading: cityLoading } = useQuery<CityResponse>({
+    queryKey: ["cityData"],
+    queryFn: () => fetchWithApiKey("/api/city"),
+  });
+
+  if (climateLoading || cityLoading) {
+    return (
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-[92px]">
+        {[...Array(4)].map((_, i) => (
+          <GlassCard key={i} className="flex items-center justify-center py-4 px-5">
+            <Loader2 className="h-5 w-5 text-cyan-500 animate-spin" />
+          </GlassCard>
+        ))}
+      </div>
+    );
+  }
+
+  const co2Val = climateData?.sensors?.co2Level || "412 ppm";
+  const energyStatus = cityData?.networks?.electricity || "Solar/Wind Active";
+
   const kpis = [
     {
       title: "Air Quality Index",
@@ -16,8 +58,8 @@ export function KpiGrid() {
     },
     {
       title: "Carbon Emissions",
-      value: "1.2t / day",
-      status: "-12% vs last month",
+      value: co2Val,
+      status: "Greenhouse Index",
       statusColor: "text-emerald-400",
       icon: Leaf,
       percent: 74,
@@ -25,7 +67,7 @@ export function KpiGrid() {
     {
       title: "Renewable Energy",
       value: "68.4%",
-      status: "Solar/Wind Active",
+      status: energyStatus,
       statusColor: "text-cyan-400",
       icon: Zap,
       percent: 68,
@@ -33,7 +75,7 @@ export function KpiGrid() {
     {
       title: "Water Consumption",
       value: "3,200 m³",
-      status: "Within Normal Range",
+      status: cityData?.networks?.water || "Within Normal Range",
       statusColor: "text-slate-400",
       icon: Droplets,
       percent: 54,

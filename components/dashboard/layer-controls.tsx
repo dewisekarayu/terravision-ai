@@ -3,13 +3,13 @@
 import React from "react";
 import { useStore, InfrastructureLayers } from "@/store/use-store";
 import { GlassCard } from "./glass-card";
-import { Zap, Droplet, Wifi, Bus } from "lucide-react";
+import { Zap, Droplet, Wifi, Bus, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function LayerControls() {
   const { layers, toggleLayer } = useStore();
 
-  const layerItems: { id: keyof InfrastructureLayers; label: string; icon: any; color: string }[] = [
+  const layerItems: { id: keyof InfrastructureLayers; label: string; icon: LucideIcon; color: string }[] = [
     { id: "electricity", label: "Power Network Grid", icon: Zap, color: "text-emerald-400" },
     { id: "water", label: "Water Pipeline Grid", icon: Droplet, color: "text-blue-400" },
     { id: "internet", label: "IoT Internet Coverage", icon: Wifi, color: "text-violet-400" },

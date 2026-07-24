@@ -1,6 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { verifyApiKey } from "@/lib/api-key";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
+  const { isValid, response } = verifyApiKey(request);
+  if (!isValid) return response;
+
   return NextResponse.json({
     status: "online",
     model: "TerraVision AI Prediction Core",
