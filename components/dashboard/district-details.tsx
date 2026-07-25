@@ -1,12 +1,12 @@
 "use client";
 
 import React from "react";
-import { useStore } from "@/store/use-store";
+import { useCityStore } from "@/three/stores/useCityStore";
 import { GlassCard } from "./glass-card";
 import { X, Users, AlertTriangle, Thermometer, Wind, Trees } from "lucide-react";
 
 export function DistrictDetails() {
-  const { selectedDistrict, setSelectedDistrict } = useStore();
+  const { selectedDistrict, setSelectedDistrict } = useCityStore();
 
   if (!selectedDistrict) return null;
 

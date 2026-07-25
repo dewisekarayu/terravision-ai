@@ -1,13 +1,5 @@
 import { create } from "zustand";
 
-export type DisasterScenario =
-  | "normal"
-  | "rainfall"
-  | "flood"
-  | "heatwave"
-  | "pollution"
-  | "earthquake";
-
 export interface InfrastructureLayers {
   electricity: boolean;
   water: boolean;
@@ -15,35 +7,27 @@ export interface InfrastructureLayers {
   transport: boolean;
 }
 
-interface SmartCityState {
-  // Day/Night cycle
-  timeOfDay: number; // 0 - 23 hours
-  setTimeOfDay: (time: number) => void;
+export interface CityLayout {
+  buildings: { position: [number, number, number]; scale: [number, number, number]; color: string }[];
+  trees: { position: [number, number, number]; scale: number }[];
+  roads: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }[];
+}
 
-  // Selected district metrics
+interface CityState {
   selectedDistrict: string | null;
   setSelectedDistrict: (district: string | null) => void;
-
-  // Active Disaster Simulation
-  disasterScenario: DisasterScenario;
-  setDisasterScenario: (scenario: DisasterScenario) => void;
-
-  // Active Infrastructure layers overlays
   layers: InfrastructureLayers;
   toggleLayer: (layer: keyof InfrastructureLayers) => void;
   resetLayers: () => void;
+  cityLayoutData: CityLayout | null;
+  setCityLayoutData: (data: CityLayout | null) => void;
+  isGenerating: boolean;
+  setIsGenerating: (isGenerating: boolean) => void;
 }
 
-export const useStore = create<SmartCityState>((set) => ({
-  timeOfDay: 12, // Default to noon
-  setTimeOfDay: (time) => set({ timeOfDay: time }),
-
+export const useCityStore = create<CityState>((set) => ({
   selectedDistrict: null,
   setSelectedDistrict: (district) => set({ selectedDistrict: district }),
-
-  disasterScenario: "normal",
-  setDisasterScenario: (scenario) => set({ disasterScenario: scenario }),
-
   layers: {
     electricity: false,
     water: false,
@@ -66,4 +50,8 @@ export const useStore = create<SmartCityState>((set) => ({
         transport: false,
       },
     }),
+  cityLayoutData: null,
+  setCityLayoutData: (data) => set({ cityLayoutData: data }),
+  isGenerating: false,
+  setIsGenerating: (isGenerating) => set({ isGenerating }),
 }));

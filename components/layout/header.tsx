@@ -1,11 +1,13 @@
 "use client";
 
-import { useStore } from "@/store/use-store";
+import { useWeatherStore } from "@/three/stores/useWeatherStore";
+import { useSimulationStore } from "@/three/stores/useSimulationStore";
 import { Sun, Moon, Bell, Search, ShieldAlert } from "lucide-react";
 import React from "react";
 
 export function Header() {
-  const { timeOfDay, setTimeOfDay, disasterScenario } = useStore();
+  const { timeOfDay, setTimeOfDay } = useWeatherStore();
+  const { disasterScenario } = useSimulationStore();
 
   const getTimelineLabel = (hour: number) => {
     if (hour === 0) return "12:00 AM (Midnight)";

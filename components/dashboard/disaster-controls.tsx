@@ -1,13 +1,18 @@
 "use client";
 
 import React from "react";
-import { useStore, DisasterScenario } from "@/store/use-store";
+import { useSimulationStore, DisasterScenario } from "@/three/stores/useSimulationStore";
+import { useWeatherStore } from "@/three/stores/useWeatherStore";
+import { useCameraStore } from "@/three/stores/useCameraStore";
 import { GlassCard } from "./glass-card";
 import { ShieldCheck, CloudRain, ShieldAlert, Flame, EyeOff, Radio, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { latLongToVector3 } from "@/three/utils/geoCoords";
 
 export function DisasterControls() {
-  const { disasterScenario, setDisasterScenario } = useStore();
+  const { disasterScenario, setDisasterScenario } = useSimulationStore();
+  const { setWeatherType } = useWeatherStore();
+  const { setMode, setTargetPosition } = useCameraStore();
 
   const scenarios: { id: DisasterScenario; label: string; icon: LucideIcon }[] = [
     { id: "normal", label: "Normal Operations", icon: ShieldCheck },
@@ -35,7 +40,23 @@ export function DisasterControls() {
           return (
             <button
               key={sc.id}
-              onClick={() => setDisasterScenario(sc.id)}
+              onClick={() => {
+                setDisasterScenario(sc.id);
+                // Trigger visual reactivity
+                if (sc.id === 'rainfall' || sc.id === 'flood') setWeatherType('rain');
+                else if (sc.id === 'earthquake' || sc.id === 'pollution') setWeatherType('storm');
+                else if (sc.id === 'heatwave') setWeatherType('fog');
+                else setWeatherType('clear');
+                
+                // Fly camera into the disaster zone
+                if (sc.id !== 'normal') {
+                  const targetPos = latLongToVector3(-6.2, 106.8, 50); // Hardcoded Jakarta for wow effect
+                  setTargetPosition([targetPos.x, targetPos.y, targetPos.z]);
+                  setMode('fly');
+                } else {
+                  setMode('free');
+                }
+              }}
               className={cn(
                 "flex items-center justify-between px-3 py-2.5 rounded-xl border text-xs font-semibold tracking-wide transition-all duration-200",
                 isActive

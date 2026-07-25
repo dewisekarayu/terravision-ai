@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
-import { useStore, InfrastructureLayers } from "@/store/use-store";
+import { useCityStore, InfrastructureLayers } from "@/three/stores/useCityStore";
 import { GlassCard } from "./glass-card";
 import { Zap, Droplet, Wifi, Bus, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export function LayerControls() {
-  const { layers, toggleLayer } = useStore();
+  const { layers, toggleLayer } = useCityStore();
 
   const layerItems: { id: keyof InfrastructureLayers; label: string; icon: LucideIcon; color: string }[] = [
     { id: "electricity", label: "Power Network Grid", icon: Zap, color: "text-emerald-400" },

@@ -2,7 +2,8 @@
 
 import React, { useRef, useMemo } from "react";
 import { useFrame } from "@react-three/fiber";
-import { useStore } from "@/store/use-store";
+import { useSimulationStore } from "@/three/stores/useSimulationStore";
+import { useCityStore } from "@/three/stores/useCityStore";
 import * as THREE from "three";
 
 interface CityGridCell {
@@ -16,7 +17,10 @@ interface CityGridCell {
 }
 
 export function DigitalTwin() {
-  const { disasterScenario, layers, selectedDistrict, setSelectedDistrict } = useStore();
+  const disasterScenario = useSimulationStore((state) => state.disasterScenario);
+  const layers = useCityStore((state) => state.layers);
+  const selectedDistrict = useCityStore((state) => state.selectedDistrict);
+  const setSelectedDistrict = useCityStore((state) => state.setSelectedDistrict);
   const waterRef = useRef<THREE.Mesh>(null);
   const particleRef = useRef<THREE.Points>(null);
 
