@@ -5,6 +5,8 @@ import { GlassCard } from "./glass-card";
 import { Wind, Leaf, Droplets, Zap, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchWithApiKey } from "@/lib/fetcher";
+import { useSimulationStore } from "@/three/stores/useSimulationStore";
+import { useSdgStore } from "@/store/useSdgStore";
 
 interface ClimateResponse {
   sensors: {
@@ -32,6 +34,9 @@ export function KpiGrid() {
     queryFn: () => fetchWithApiKey("/api/city"),
   });
 
+  const { disasterScenario } = useSimulationStore();
+  const { getGlobalScore, sdgs } = useSdgStore();
+
   if (climateLoading || cityLoading) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-[92px]">
@@ -44,41 +49,88 @@ export function KpiGrid() {
     );
   }
 
-  const co2Val = climateData?.sensors?.co2Level || "412 ppm";
-  const energyStatus = cityData?.networks?.electricity || "Solar/Wind Active";
+  const isDisaster = disasterScenario !== "normal";
+  const sdg6Active = sdgs.find(s => s.id === 6)?.isActive !== false; // Clean water
+  const sdg7Active = sdgs.find(s => s.id === 7)?.isActive !== false; // Clean energy
+  const sdg13Active = sdgs.find(s => s.id === 13)?.isActive !== false; // Climate action
+
+  // Base Values
+  let aqi = "42 AQI";
+  let aqiStatus = "Excellent";
+  let aqiColor = "text-emerald-400";
+  let aqiPercent = 85;
+
+  let co2 = climateData?.sensors?.co2Level || "412 ppm";
+  let co2Status = "Greenhouse Index";
+  let co2Color = "text-emerald-400";
+  let co2Percent = 74;
+
+  let energy = "68.4%";
+  let energyStatus = cityData?.networks?.electricity || "98% capacity";
+  let energyColor = "text-cyan-400";
+  let energyPercent = 68;
+
+  let water = "3,200 m³";
+  let waterStatus = cityData?.networks?.water || "100% capacity";
+  let waterColor = "text-slate-400";
+  let waterPercent = 54;
+
+  // SDG Reactivity
+  if (!sdg13Active) {
+    co2 = "480 ppm"; co2Status = "Warning"; co2Color = "text-yellow-500"; co2Percent = 40;
+  }
+  if (!sdg7Active) {
+    energy = "42.1%"; energyStatus = "Capacity Dropping"; energyColor = "text-yellow-500"; energyPercent = 42;
+  }
+  if (!sdg6Active) {
+    water = "1,100 m³"; waterStatus = "Shortage Detected"; waterColor = "text-yellow-500"; waterPercent = 20;
+  }
+
+  // Disaster Reactivity (Overrides SDGs)
+  if (disasterScenario === "pollution") {
+    aqi = "210 AQI"; aqiStatus = "Hazardous"; aqiColor = "text-red-500"; aqiPercent = 10;
+  } else if (disasterScenario === "flood" || disasterScenario === "rainfall") {
+    water = "9,800 m³"; waterStatus = "CRITICAL OVERFLOW"; waterColor = "text-red-500"; waterPercent = 100;
+  } else if (disasterScenario === "earthquake") {
+    energy = "12.4%"; energyStatus = "Grid Failure"; energyColor = "text-red-500"; energyPercent = 12;
+    water = "400 m³"; waterStatus = "Pipe Bursts"; waterColor = "text-red-500"; waterPercent = 5;
+  } else if (disasterScenario === "heatwave") {
+    energy = "98.9%"; energyStatus = "Grid Overload"; energyColor = "text-red-500"; energyPercent = 99;
+    water = "5,400 m³"; waterStatus = "High Demand"; waterColor = "text-orange-500"; waterPercent = 80;
+  }
 
   const kpis = [
     {
       title: "Air Quality Index",
-      value: "42 AQI",
-      status: "Excellent",
-      statusColor: "text-emerald-400",
+      value: aqi,
+      status: aqiStatus,
+      statusColor: aqiColor,
       icon: Wind,
-      percent: 85,
+      percent: aqiPercent,
     },
     {
       title: "Carbon Emissions",
-      value: co2Val,
-      status: "Greenhouse Index",
-      statusColor: "text-emerald-400",
+      value: co2,
+      status: co2Status,
+      statusColor: co2Color,
       icon: Leaf,
-      percent: 74,
+      percent: co2Percent,
     },
     {
       title: "Renewable Energy",
-      value: "68.4%",
+      value: energy,
       status: energyStatus,
-      statusColor: "text-cyan-400",
+      statusColor: energyColor,
       icon: Zap,
-      percent: 68,
+      percent: energyPercent,
     },
     {
       title: "Water Consumption",
-      value: "3,200 m³",
-      status: cityData?.networks?.water || "Within Normal Range",
-      statusColor: "text-slate-400",
+      value: water,
+      status: waterStatus,
+      statusColor: waterColor,
       icon: Droplets,
-      percent: 54,
+      percent: waterPercent,
     },
   ];
 

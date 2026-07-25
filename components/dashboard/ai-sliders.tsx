@@ -25,21 +25,21 @@ export function AiSliders() {
   };
 
   return (
-    <GlassCard className="p-4 flex flex-col gap-4 max-h-[400px] overflow-y-auto">
+    <GlassCard className="p-6 flex flex-col gap-6 shrink-0">
       <div className="flex items-center gap-2 mb-2">
         <Activity className="h-5 w-5 text-cyan-400" />
         <h3 className="text-sm font-bold text-slate-100 tracking-wider">AI SIMULATION PARAMETERS</h3>
       </div>
       
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-6">
         {sliders.map((s) => (
           <div key={s.id} className="flex flex-col gap-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center gap-2.5">
                 <s.icon className={`h-4 w-4 ${s.color}`} />
-                <span className="text-xs font-semibold text-slate-300">{s.label}</span>
+                <span className="text-sm font-semibold text-slate-300">{s.label}</span>
               </div>
-              <span className="text-xs font-mono text-cyan-400">{(s.value * 100).toFixed(0)}%</span>
+              <span className="text-sm font-mono font-bold text-cyan-400">{(s.value * 100).toFixed(0)}%</span>
             </div>
             <input 
               type="range" 

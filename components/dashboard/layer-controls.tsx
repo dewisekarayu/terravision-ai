@@ -17,7 +17,7 @@ export function LayerControls() {
   ];
 
   return (
-    <GlassCard className="flex flex-col gap-4">
+    <GlassCard className="flex flex-col gap-5 p-6">
       <div>
         <h3 className="text-sm font-bold text-slate-200">INFRASTRUCTURE LAYERS</h3>
         <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
@@ -25,7 +25,7 @@ export function LayerControls() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         {layerItems.map((layer) => {
           const Icon = layer.icon;
           const isActive = layers[layer.id];
@@ -35,7 +35,7 @@ export function LayerControls() {
               key={layer.id}
               onClick={() => toggleLayer(layer.id)}
               className={cn(
-                "flex items-center justify-between px-3 py-2.5 rounded-xl border text-xs font-semibold tracking-wide transition-all duration-200",
+                "flex items-center justify-between px-4 py-3.5 rounded-xl border text-sm font-semibold tracking-wide transition-all duration-200",
                 isActive
                   ? "bg-slate-800/80 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.15)]"
                   : "bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200"

@@ -67,7 +67,7 @@ export function SdgImpact() {
   ];
 
   return (
-    <GlassCard className="flex flex-col gap-4">
+    <GlassCard className="flex flex-col gap-5 p-6">
       <div className="flex items-center gap-2">
         <Globe2 className="h-5 w-5 text-emerald-400" />
         <div>
@@ -80,7 +80,7 @@ export function SdgImpact() {
 
       <div className="flex flex-col gap-3">
         {sdgs.map((sdg) => (
-          <div key={sdg.id} className={`border rounded-xl p-3 flex flex-col gap-1.5 ${sdg.color}`}>
+          <div key={sdg.id} className={`border rounded-xl p-4 flex flex-col gap-2 ${sdg.color}`}>
             <div className="flex justify-between items-center">
               <span className="text-[10px] font-black uppercase tracking-wider bg-slate-900/60 px-2 py-0.5 rounded-full">
                 {sdg.id}
@@ -88,10 +88,10 @@ export function SdgImpact() {
               <span className="text-xs font-bold">{sdg.title}</span>
             </div>
             <div className="flex justify-between items-baseline">
-              <span className="text-[10px] font-semibold text-slate-300">{sdg.target}</span>
+              <span className="text-xs font-semibold text-slate-300">{sdg.target}</span>
               <span className="text-sm font-black">{sdg.achieved} Target</span>
             </div>
-            <p className="text-[9px] text-slate-400 leading-normal">{sdg.desc}</p>
+            <p className="text-xs text-slate-400 leading-normal">{sdg.desc}</p>
           </div>
         ))}
       </div>

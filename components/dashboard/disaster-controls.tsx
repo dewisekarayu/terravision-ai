@@ -24,7 +24,7 @@ export function DisasterControls() {
   ];
 
   return (
-    <GlassCard className="flex flex-col gap-4">
+    <GlassCard className="flex flex-col gap-6 p-6">
       <div>
         <h3 className="text-sm font-bold text-slate-200">DISASTER SIMULATION</h3>
         <p className="text-[10px] text-slate-500 uppercase tracking-wider font-semibold">
@@ -32,7 +32,7 @@ export function DisasterControls() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-col gap-3">
         {scenarios.map((sc) => {
           const Icon = sc.icon;
           const isActive = disasterScenario === sc.id;
@@ -58,7 +58,7 @@ export function DisasterControls() {
                 }
               }}
               className={cn(
-                "flex items-center justify-between px-3 py-2.5 rounded-xl border text-xs font-semibold tracking-wide transition-all duration-200",
+                "flex items-center justify-between px-4 py-3.5 rounded-xl border text-sm font-semibold tracking-wide transition-all duration-200",
                 isActive
                   ? "bg-slate-800/80 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.15)]"
                   : "bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200"

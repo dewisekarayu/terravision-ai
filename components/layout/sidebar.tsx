@@ -28,7 +28,7 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="fixed left-4 top-4 bottom-4 w-64 glass-panel rounded-2xl flex flex-col justify-between py-6 px-4 z-40">
+    <aside className="fixed left-4 top-4 bottom-4 w-64 glass-panel rounded-2xl flex flex-col justify-between py-6 px-4 z-40 pointer-events-auto">
       <div className="flex flex-col gap-8">
         {/* Brand Logo */}
         <div className="flex items-center gap-3 px-2">
