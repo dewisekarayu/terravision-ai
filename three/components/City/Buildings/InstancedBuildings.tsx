@@ -71,30 +71,55 @@ export function InstancedBuildings() {
     }
   }, []);
 
-  useFrame(() => {
+  useFrame((frameState) => {
     if (materialRef.current) {
-      const state = useSimulationStore.getState();
+      const simState = useSimulationStore.getState();
       const targetColor = new THREE.Color();
       
-      if (state.disasterScenario === 'heatwave') {
+      if (simState.disasterScenario === 'heatwave') {
         // Soft warm reddish-orange tint for heatwave (not too intense)
         targetColor.setHex(0xffbb99);
-      } else if (state.disasterScenario === 'pollution') {
+      } else if (simState.disasterScenario === 'pollution') {
         // Thick, dirty ash/gray smog
         targetColor.setHex(0x3f3f46); // zinc-700 (dark ash)
-      } else if (state.disasterScenario === 'rainfall' || state.disasterScenario === 'flood') {
+      } else if (simState.disasterScenario === 'rainfall' || simState.disasterScenario === 'flood') {
         // Cool blueish/grayish tint for rain or floods
         targetColor.setHex(0x93c5fd);
       } else {
         // Normal city health interpolation
-        const health = calculateCityHealth(state.povertyScore, state.educationScore, state.healthcareScore);
+        const health = calculateCityHealth(simState.povertyScore, simState.educationScore, simState.healthcareScore);
         const poorColor = new THREE.Color(0xd1d5db); // slate-300
         const healthyColor = new THREE.Color(0xffffff); // white
         targetColor.lerpColors(poorColor, healthyColor, health);
       }
 
-      // Smoothly transition the material color to the target color for awesome visual feedback
-      materialRef.current.color.lerp(targetColor, 0.02);
+      if (simState.disasterScenario === 'normal') {
+        // Snap instantly back to normal
+        materialRef.current.color.copy(targetColor);
+      } else {
+        // Smoothly transition the material color to the target color for awesome visual feedback
+        materialRef.current.color.lerp(targetColor, 0.02);
+      }
+
+      // Update custom shader uniforms for earthquake simulation
+      const shader = materialRef.current.userData.shader;
+      if (shader) {
+        shader.uniforms.uTime.value = frameState.clock.elapsedTime;
+        
+        const isQuake = simState.disasterScenario === 'earthquake';
+        
+        if (simState.disasterScenario === 'normal') {
+          // Instantly stop the earthquake
+          shader.uniforms.uEarthquake.value = 0.0;
+        } else {
+          // Smoothly ramp up or calm down the earthquake intensity
+          shader.uniforms.uEarthquake.value = THREE.MathUtils.lerp(
+            shader.uniforms.uEarthquake.value,
+            isQuake ? 1.0 : 0.0,
+            0.02 // Slow ramp up for dramatic effect
+          );
+        }
+      }
     }
   });
 
@@ -111,6 +136,54 @@ export function InstancedBuildings() {
         emissiveIntensity={1.5}
         roughness={0.2} 
         metalness={0.7} 
+        onBeforeCompile={(shader) => {
+          shader.uniforms.uEarthquake = { value: 0 };
+          shader.uniforms.uTime = { value: 0 };
+          
+          if (materialRef.current) {
+            materialRef.current.userData.shader = shader;
+          }
+
+          shader.vertexShader = `
+            uniform float uEarthquake;
+            uniform float uTime;
+            ${shader.vertexShader}
+          `.replace(
+            `#include <begin_vertex>`,
+            `
+            #include <begin_vertex>
+            
+            if (uEarthquake > 0.0) {
+              // Pseudo-random value based on instance ID
+              float rand = fract(sin(float(gl_InstanceID) * 12.9898) * 43758.5453);
+              
+              // ~30% of buildings will be severely damaged
+              if (rand < 0.3) {
+                 float severity = smoothstep(0.0, 1.0, uEarthquake * (1.0 + rand));
+                 
+                 // Partial sink (foundation failure, liquefaction)
+                 // Instead of sinking completely or squashing, it sinks up to 40% of its height
+                 transformed.y -= 0.4 * severity;
+                 
+                 // Heavy structural lean (toppling over but not flat)
+                 // We tilt the building so it looks like it's falling over diagonally
+                 transformed.x += transformed.y * (rand - 0.5) * 1.5 * severity;
+                 transformed.z += transformed.y * fract(rand * 10.0) * 1.5 * severity;
+              }
+              
+              // 1. Low-frequency heavy sway (tall buildings sway more at the top)
+              float swaySpeed = uTime * 6.0; 
+              transformed.x += sin(swaySpeed + rand * 6.28) * (transformed.y * 0.03) * uEarthquake;
+              transformed.z += cos(swaySpeed * 0.85 - rand * 6.28) * (transformed.y * 0.03) * uEarthquake;
+
+              // 2. High-frequency ground rumble (small, rapid vibrations)
+              float rumbleSpeed = uTime * 25.0;
+              transformed.x += sin(rumbleSpeed + rand * 10.0) * 0.05 * uEarthquake;
+              transformed.z += cos(rumbleSpeed * 0.9 - rand * 10.0) * 0.05 * uEarthquake;
+            }
+            `
+          );
+        }}
       />
       
       {cityLayoutData.buildings.map((b, i) => (

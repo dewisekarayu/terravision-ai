@@ -11,6 +11,7 @@ import { CameraController } from "../components/Cinematic/CameraController";
 import { Effects } from "../postprocessing/Effects";
 import { PrecipitationSystem } from "../components/Weather/PrecipitationSystem";
 import { DynamicFog } from "../components/Weather/DynamicFog";
+import { FloodWater } from "../components/Weather/FloodWater";
 
 export function MainCanvas() {
   const { timeOfDay } = useWeatherStore();
@@ -85,6 +86,7 @@ export function MainCanvas() {
           <CameraController />
           <DynamicFog />
           <PrecipitationSystem />
+          <FloodWater />
           
           {/* Enable stats to monitor performance in dev mode */}
           {process.env.NODE_ENV === "development" && <Stats className="!absolute !right-0 !left-auto" />}

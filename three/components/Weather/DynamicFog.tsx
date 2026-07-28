@@ -58,13 +58,21 @@ export function DynamicFog() {
         }
       }
 
-      // Smoothly transition fog properties
-      scene.fog.color.lerp(reusableColor, delta * 2);
-      if (scene.background instanceof THREE.Color) {
-        scene.background.lerp(reusableColor, delta * 2);
+      if (disasterScenario === 'normal') {
+        // Snap instantly back to normal
+        scene.fog.color.copy(reusableColor);
+        if (scene.background instanceof THREE.Color) {
+          scene.background.copy(reusableColor);
+        }
+        scene.fog.density = targetDensity;
+      } else {
+        // Smoothly transition fog properties
+        scene.fog.color.lerp(reusableColor, delta * 2);
+        if (scene.background instanceof THREE.Color) {
+          scene.background.lerp(reusableColor, delta * 2);
+        }
+        scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, targetDensity, delta * 2);
       }
-      
-      scene.fog.density = THREE.MathUtils.lerp(scene.fog.density, targetDensity, delta * 2);
     }
   });
 
