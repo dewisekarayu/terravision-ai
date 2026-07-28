@@ -25,8 +25,8 @@ export function MainCanvas() {
 
   const isDay = timeOfDay >= 6 && timeOfDay < 18;
   const sunColor = isDay ? "#FFF3D6" : "#7A8CFF";
-  const sunIntensity = isDay ? 1.5 : 0.2;
-  const ambientIntensity = isDay ? 0.4 : 0.08;
+  const sunIntensity = isDay ? 2.0 : 0.5;
+  const ambientIntensity = isDay ? 0.6 : 0.25;
 
   return (
     <div className="w-full h-full relative rounded-2xl overflow-hidden border border-slate-800/40 bg-slate-950/80">

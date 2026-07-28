@@ -21,52 +21,77 @@ export function generateCityGrid(
       const isRoadZ = z % 4 === 0;
 
       if (isRoadX || isRoadZ) {
-        // Simple road mesh setup
-        if (isRoadX && !isRoadZ) {
+        // Full cell size to eliminate gaps and connect perfectly to intersections
+        // This still leaves a sidewalk gap because buildings are scaled to cellSize * 0.8
+        if (isRoadX && isRoadZ) {
+          // Intersection: just draw a square road piece
           roads.push({
             position: [px, 0.05, pz] as [number, number, number],
             rotation: [0, 0, 0] as [number, number, number],
-            scale: [cellSize * 0.8, 1, cellSize] as [number, number, number],
+            scale: [cellSize, 1, cellSize] as [number, number, number],
           });
-        } else if (isRoadZ && !isRoadX) {
+        } else if (isRoadX) {
+          roads.push({
+            position: [px, 0.05, pz] as [number, number, number],
+            rotation: [0, 0, 0] as [number, number, number],
+            scale: [cellSize, 1, cellSize] as [number, number, number],
+          });
+        } else if (isRoadZ) {
           roads.push({
             position: [px, 0.05, pz] as [number, number, number],
             rotation: [0, Math.PI / 2, 0] as [number, number, number],
-            scale: [cellSize * 0.8, 1, cellSize] as [number, number, number],
+            scale: [cellSize, 1, cellSize] as [number, number, number],
           });
         }
         continue;
       }
 
-      // Procedural probability based on density
-      if (Math.random() < density) {
-        const isPark = Math.random() < 0.2; // 20% chance of being a park/tree
+      // Distance from center to create a realistic downtown core
+      const distX = (x - gridSize / 2) / (gridSize / 2);
+      const distZ = (z - gridSize / 2) / (gridSize / 2);
+      const distanceFromCenter = Math.sqrt(distX * distX + distZ * distZ); // 0 at center, ~1.4 at corners
+      
+      // Downtown is denser, suburbs are sparser
+      const localDensity = density * Math.max(0.2, 1.0 - distanceFromCenter * 0.5);
+
+      if (Math.random() < localDensity) {
+        // More parks in suburbs, fewer in downtown
+        const isPark = Math.random() < (0.1 + distanceFromCenter * 0.3);
 
         if (isPark) {
           trees.push({
             position: [px, 0, pz] as [number, number, number],
-            scale: 0.5 + Math.random() * 0.5,
+            scale: 0.4 + Math.random() * 0.4,
           });
         } else {
-          const height = 1 + Math.random() * 8; // Random building height
-          // Vibrant cyberpunk / neon color palette for a digital twin look
-          const palettes = [
-            "#0ea5e9", // Sky Blue
-            "#8b5cf6", // Violet
-            "#ec4899", // Pink
-            "#10b981", // Emerald
-            "#f59e0b", // Amber
-            "#06b6d4", // Cyan
-            "#6366f1"  // Indigo
+          // Buildings are tallest in the center, dropping off logarithmically
+          const maxHeight = Math.max(1, (1.0 - distanceFromCenter) * 20);
+          const height = 1 + Math.random() * maxHeight + Math.random() * 2; // Random variation
+          
+          // Realistic building colors (Glass, Concrete, Steel, Brick)
+          const realisticPalettes = [
+            "#e2e8f0", // Light Concrete / White
+            "#94a3b8", // Steel Gray
+            "#38bdf8", // Reflective Glass Blue
+            "#cbd5e1", // Standard Gray
+            "#f1f5f9", // Very White
+            "#7dd3fc"  // Light Sky Glass
           ];
-          // Assign color based on position or height to group similar colors, or just random
-          // Let's use a mix of randomness and height for a nice distribution
-          const colorIndex = Math.floor(Math.random() * palettes.length);
-          const color = palettes[colorIndex];
+          
+          // Taller buildings are more likely to be glass/steel
+          let color = realisticPalettes[Math.floor(Math.random() * realisticPalettes.length)];
+          if (height > 10 && Math.random() > 0.3) {
+             // Force glass/steel for skyscrapers
+             color = Math.random() > 0.5 ? "#38bdf8" : "#94a3b8";
+          } else if (height < 4 && Math.random() > 0.7) {
+             // Sometimes brick/brown for small buildings
+             color = "#d6d3d1"; // Stone/Brownish
+          }
 
           buildings.push({
             position: [px, height / 2, pz] as [number, number, number],
-            scale: [cellSize * 0.8, height, cellSize * 0.8] as [number, number, number],
+            // Make tall buildings slightly thinner for realism
+            scale: [cellSize * (height > 12 ? 0.7 : 0.8), height, cellSize * (height > 12 ? 0.7 : 0.8)] as [number, number, number],
             color,
           });
         }

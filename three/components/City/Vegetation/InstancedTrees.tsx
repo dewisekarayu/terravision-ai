@@ -10,9 +10,9 @@ export function InstancedTrees() {
 
   return (
     <Instances limit={10000} range={cityLayoutData.trees.length} castShadow receiveShadow>
-      {/* Simple Tree geometry: A cylinder trunk + cone top combined, or just a cone for performance */}
-      <coneGeometry args={[0.3, 1, 4]} />
-      <meshStandardMaterial color="#22c55e" roughness={0.8} />
+      {/* More realistic tree geometry: slightly rounder cone, natural forest green */}
+      <coneGeometry args={[0.4, 1.2, 5]} />
+      <meshStandardMaterial color="#166534" roughness={0.9} />
       
       {cityLayoutData.trees.map((t, i) => (
         <Instance 

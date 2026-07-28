@@ -44,9 +44,8 @@ export function DisasterControls() {
                 setDisasterScenario(sc.id);
                 // Trigger visual reactivity
                 if (sc.id === 'rainfall' || sc.id === 'flood') setWeatherType('rain');
-                else if (sc.id === 'earthquake' || sc.id === 'pollution') setWeatherType('storm');
-                else if (sc.id === 'heatwave') setWeatherType('fog');
-                else setWeatherType('clear');
+                else if (sc.id === 'heatwave' || sc.id === 'pollution') setWeatherType('fog');
+                else setWeatherType('clear'); // earthquake or normal is clear
                 
                 // Fly camera into the disaster zone
                 if (sc.id !== 'normal') {

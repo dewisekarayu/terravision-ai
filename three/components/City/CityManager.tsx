@@ -2,8 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useCityStore } from '../../stores/useCityStore';
 import { InstancedBuildings } from './Buildings/InstancedBuildings';
+import { CityLights } from './Buildings/CityLights';
 import { InstancedTrees } from './Vegetation/InstancedTrees';
 import { InstancedRoads } from './Infrastructure/InstancedRoads';
+import { MovingTraffic } from './Infrastructure/MovingTraffic';
 import { useCameraStore } from '../../stores/useCameraStore';
 import * as THREE from 'three';
 
@@ -16,7 +18,8 @@ export function CityManager() {
   useEffect(() => {
     setIsGenerating(true);
     
-    const worker = new Worker(new URL('../../services/city.worker.ts', import.meta.url));
+    // Added ?v=2 to force Next.js to recompile the worker so the intersection gap fix applies!
+    const worker = new Worker(new URL('../../services/city.worker.ts?v=2', import.meta.url));
     
     worker.onmessage = (e) => {
       setCityLayoutData(e.data);
@@ -52,8 +55,10 @@ export function CityManager() {
       // For a real globe, lookAt(0,0,0) and rotate would be used
     >
       <InstancedBuildings />
+      <CityLights />
       <InstancedTrees />
       <InstancedRoads />
+      <MovingTraffic />
     </group>
   );
 }
