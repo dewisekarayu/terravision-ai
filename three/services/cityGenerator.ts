@@ -49,9 +49,20 @@ export function generateCityGrid(
           });
         } else {
           const height = 1 + Math.random() * 8; // Random building height
-          // Color variant based on height (mocking some data)
-          const isHighDensity = height > 6;
-          const color = isHighDensity ? "#94a3b8" : "#cbd5e1";
+          // Vibrant cyberpunk / neon color palette for a digital twin look
+          const palettes = [
+            "#0ea5e9", // Sky Blue
+            "#8b5cf6", // Violet
+            "#ec4899", // Pink
+            "#10b981", // Emerald
+            "#f59e0b", // Amber
+            "#06b6d4", // Cyan
+            "#6366f1"  // Indigo
+          ];
+          // Assign color based on position or height to group similar colors, or just random
+          // Let's use a mix of randomness and height for a nice distribution
+          const colorIndex = Math.floor(Math.random() * palettes.length);
+          const color = palettes[colorIndex];
 
           buildings.push({
             position: [px, height / 2, pz] as [number, number, number],
