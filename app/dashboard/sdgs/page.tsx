@@ -42,7 +42,7 @@ export default function SdgsPage() {
   ];
 
   return (
-    <div className="flex-1 flex flex-col gap-4 overflow-y-auto h-full max-h-full pb-4 scrollbar-thin">
+    <div className="flex-1 flex flex-col gap-4 overflow-y-auto h-full max-h-full pb-4 scrollbar-thin pointer-events-auto">
       <div>
         <h1 className="text-xl font-bold text-white tracking-wide">SDG Impact Monitoring</h1>
         <p className="text-xs text-slate-400">

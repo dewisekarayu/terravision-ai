@@ -1,4 +1,4 @@
-import { CityLayout } from '../stores/useCityStore';
+import type { CityLayout } from '../stores/useCityStore';
 
 export function generateCityGrid(
   gridSize: number, 

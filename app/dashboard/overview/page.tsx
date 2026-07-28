@@ -9,7 +9,6 @@ import { AiPredictor } from "@/components/dashboard/ai-predictor";
 import { SdgImpact } from "@/components/dashboard/sdg-impact";
 import { DistrictDetails } from "@/components/dashboard/district-details";
 import { AiSliders } from "@/components/dashboard/ai-sliders";
-import { SdgMatrix } from "@/components/dashboard/sdg-matrix";
 import { useCityStore } from "@/three/stores/useCityStore";
 
 const SdgRadarChart = dynamic(() => import("@/components/dashboard/charts/SdgRadarChart").then(mod => mod.SdgRadarChart), { ssr: false });
@@ -89,10 +88,7 @@ export default function OverviewPage() {
         </div>
       )}
 
-      {/* Bottom Center HUD: 17 SDGs Matrix */}
-      <div className="pointer-events-auto">
-        <SdgMatrix />
-      </div>
+
     </div>
   );
 }

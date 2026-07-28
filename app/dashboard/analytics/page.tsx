@@ -24,7 +24,7 @@ const recyclingData = [
 
 export default function AnalyticsPage() {
   return (
-    <div className="flex-1 flex flex-col gap-4 overflow-y-auto h-full max-h-full pb-4 scrollbar-thin">
+    <div className="flex-1 flex flex-col gap-4 overflow-y-auto h-full max-h-full pb-4 scrollbar-thin pointer-events-auto">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-xl font-bold text-white tracking-wide">Advanced Data Analytics</h1>

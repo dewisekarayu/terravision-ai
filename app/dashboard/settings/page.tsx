@@ -9,7 +9,7 @@ export default function SettingsPage() {
   const [apiKey, setApiKey] = useState("terravision-key-9");
 
   return (
-    <div className="flex-1 flex flex-col gap-4 overflow-y-auto h-full max-h-full pb-4 scrollbar-thin">
+    <div className="flex-1 flex flex-col gap-4 overflow-y-auto h-full max-h-full pb-4 scrollbar-thin pointer-events-auto">
       <div>
         <h1 className="text-xl font-bold text-white tracking-wide">System Configurations</h1>
         <p className="text-xs text-slate-400">
