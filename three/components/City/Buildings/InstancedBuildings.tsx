@@ -134,9 +134,9 @@ export function InstancedBuildings() {
         emissive="#ffffff"
         emissiveMap={emissiveTexture}
         emissiveIntensity={1.5}
-        roughness={0.2} 
-        metalness={0.7} 
-        onBeforeCompile={(shader) => {
+        roughness={0.8} 
+        metalness={0.1} 
+        onBeforeCompile={React.useCallback((shader: any) => {
           shader.uniforms.uEarthquake = { value: 0 };
           shader.uniforms.uTime = { value: 0 };
           
@@ -162,28 +162,26 @@ export function InstancedBuildings() {
                  float severity = smoothstep(0.0, 1.0, uEarthquake * (1.0 + rand));
                  
                  // Partial sink (foundation failure, liquefaction)
-                 // Instead of sinking completely or squashing, it sinks up to 40% of its height
                  transformed.y -= 0.4 * severity;
                  
-                 // Heavy structural lean (toppling over but not flat)
-                 // We tilt the building so it looks like it's falling over diagonally
+                 // Heavy structural lean
                  transformed.x += transformed.y * (rand - 0.5) * 1.5 * severity;
                  transformed.z += transformed.y * fract(rand * 10.0) * 1.5 * severity;
               }
               
-              // 1. Low-frequency heavy sway (tall buildings sway more at the top)
+              // 1. Low-frequency heavy sway
               float swaySpeed = uTime * 6.0; 
               transformed.x += sin(swaySpeed + rand * 6.28) * (transformed.y * 0.03) * uEarthquake;
               transformed.z += cos(swaySpeed * 0.85 - rand * 6.28) * (transformed.y * 0.03) * uEarthquake;
 
-              // 2. High-frequency ground rumble (small, rapid vibrations)
+              // 2. High-frequency ground rumble
               float rumbleSpeed = uTime * 25.0;
               transformed.x += sin(rumbleSpeed + rand * 10.0) * 0.05 * uEarthquake;
               transformed.z += cos(rumbleSpeed * 0.9 - rand * 10.0) * 0.05 * uEarthquake;
             }
             `
           );
-        }}
+        }, [])}
       />
       
       {cityLayoutData.buildings.map((b, i) => (

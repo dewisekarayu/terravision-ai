@@ -13,21 +13,74 @@ import { PrecipitationSystem } from "../components/Weather/PrecipitationSystem";
 import { DynamicFog } from "../components/Weather/DynamicFog";
 import { FloodWater } from "../components/Weather/FloodWater";
 
+// Define color stops once outside the component
+const SUN_STOPS = [
+  { t: 0, c: new THREE.Color("#3b82f6") }, // Midnight moon (blue)
+  { t: 5, c: new THREE.Color("#60a5fa") }, // Pre-dawn moon
+  { t: 6, c: new THREE.Color("#fb923c") }, // Sunrise (orange)
+  { t: 7, c: new THREE.Color("#ffffff") }, // 7 AM: Bright Sun
+  { t: 16, c: new THREE.Color("#ffffff") }, // 4 PM: Still Bright Sun (7-4 terang)
+  { t: 16.5, c: new THREE.Color("#fef08a") }, // 4:30 PM: Golden yellow transition
+  { t: 17, c: new THREE.Color("#fb923c") }, // 5 PM: Orange
+  { t: 18, c: new THREE.Color("#ea580c") }, // 6 PM: Deep Sunset Orange
+  { t: 19, c: new THREE.Color("#60a5fa") }, // 7 PM: Dusk moon
+  { t: 24, c: new THREE.Color("#3b82f6") }, // Midnight moon
+];
+
+// Helper to get the sun color based on time of day using multiple realistic stops
+const getSunColor = (time: number) => {
+  for (let i = 0; i < SUN_STOPS.length - 1; i++) {
+    if (time >= SUN_STOPS[i].t && time <= SUN_STOPS[i + 1].t) {
+      const progress = (time - SUN_STOPS[i].t) / (SUN_STOPS[i + 1].t - SUN_STOPS[i].t);
+      const color = new THREE.Color();
+      color.lerpColors(SUN_STOPS[i].c, SUN_STOPS[i + 1].c, progress);
+      return color;
+    }
+  }
+  return SUN_STOPS[0].c.clone();
+};
+
 export function MainCanvas() {
   const { timeOfDay } = useWeatherStore();
   const { setDpr, setFps, setLowEnd, dpr } = usePerformanceStore();
 
   // Calculate sun position based on timeOfDay (hour 0-23)
-  const angle = (timeOfDay / 24) * Math.PI * 2 + Math.PI; // Offset to start midnight at bottom
+  // Shift by -PI/2 so 0 (midnight) is at bottom (-Y), 12 (noon) is at top (+Y)
+  const angle = (timeOfDay / 24) * Math.PI * 2 - Math.PI / 2;
   const radius = 100;
   const sunX = Math.cos(angle) * radius;
   const sunY = Math.sin(angle) * radius;
   const sunZ = 20;
 
-  const isDay = timeOfDay >= 6 && timeOfDay < 18;
-  const sunColor = isDay ? "#FFF3D6" : "#7A8CFF";
-  const sunIntensity = isDay ? 2.0 : 0.5;
-  const ambientIntensity = isDay ? 0.6 : 0.25;
+  // We want shadows to always cast from above, so if it's night (sunY < 0), 
+  // we invert the Y and X to simulate a moon rising opposite the sun.
+  const isNight = sunY < 0;
+  const lightX = isNight ? -sunX : sunX;
+  const lightY = isNight ? -sunY : sunY;
+  
+  // Smoothly calculate light intensity based on height in the sky (lightY goes from 0 to 100)
+  const heightFactor = Math.max(0, lightY / 100); 
+  
+  let sunIntensity = 0;
+  let ambientIntensity = 0;
+  let sunColor = new THREE.Color();
+  let ambientColor = new THREE.Color();
+
+  sunColor.copy(getSunColor(timeOfDay));
+
+  if (!isNight) {
+    // Daytime
+    // Base intensity is much higher now so it's never too dark, peaking at noon
+    sunIntensity = 2.0 + heightFactor * 3.0; // 2.0 at dawn/dusk, 5.0 at noon
+    ambientIntensity = 0.8 + heightFactor * 0.4; // 0.8 to 1.2
+    ambientColor.set("#E0F2FE"); // Bright sky reflection
+  } else {
+    // Nighttime (Moonlight)
+    // Increased night time brightness so it's not pitch black
+    sunIntensity = 0.3 + heightFactor * 0.7; // 0.3 at dusk/dawn, 1.0 at midnight
+    ambientIntensity = 0.4; // Prevents shadows from being completely black
+    ambientColor.set("#1E1B4B"); // Deep dark ambient
+  }
 
   return (
     <div className="w-full h-full relative rounded-2xl overflow-hidden border border-slate-800/40 bg-slate-950/80">
@@ -61,11 +114,11 @@ export function MainCanvas() {
             maxDistance={120}
           />
 
-          <ambientLight intensity={ambientIntensity} color={isDay ? "#E0F2FE" : "#1E1B4B"} />
+          <ambientLight intensity={ambientIntensity} color={ambientColor} />
 
           <directionalLight
             castShadow
-            position={[sunX, sunY, sunZ]}
+            position={[lightX, lightY, sunZ]}
             intensity={sunIntensity}
             color={sunColor}
             shadow-mapSize-width={2048}

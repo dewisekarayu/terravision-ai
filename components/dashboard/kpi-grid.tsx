@@ -35,7 +35,22 @@ export function KpiGrid() {
   });
 
   const { disasterScenario } = useSimulationStore();
-  const { getGlobalScore, sdgs } = useSdgStore();
+  const { sdgs } = useSdgStore();
+  
+  // Real-time AI Sensor Fluctuations
+  const [fluct, setFluct] = React.useState({ aqi: 0, co2: 0, energy: 0, water: 0 });
+
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setFluct({
+        aqi: Math.floor(Math.random() * 5) - 2,
+        co2: Math.floor(Math.random() * 9) - 4,
+        energy: (Math.random() * 0.8) - 0.4,
+        water: Math.floor(Math.random() * 40) - 20,
+      });
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   if (climateLoading || cityLoading) {
     return (
@@ -49,88 +64,78 @@ export function KpiGrid() {
     );
   }
 
-  const isDisaster = disasterScenario !== "normal";
   const sdg6Active = sdgs.find(s => s.id === 6)?.isActive !== false; // Clean water
   const sdg7Active = sdgs.find(s => s.id === 7)?.isActive !== false; // Clean energy
   const sdg13Active = sdgs.find(s => s.id === 13)?.isActive !== false; // Climate action
 
-  // Base Values
-  let aqi = "42 AQI";
-  let aqiStatus = "Excellent";
-  let aqiColor = "text-emerald-400";
-  let aqiPercent = 85;
+  // Base Targets
+  let targetAqi = 42;
+  let targetCo2 = 412;
+  let targetEnergy = 68.4;
+  let targetWater = 3200;
 
-  let co2 = climateData?.sensors?.co2Level || "412 ppm";
-  let co2Status = "Greenhouse Index";
-  let co2Color = "text-emerald-400";
-  let co2Percent = 74;
-
-  let energy = "68.4%";
-  let energyStatus = cityData?.networks?.electricity || "98% capacity";
-  let energyColor = "text-cyan-400";
-  let energyPercent = 68;
-
-  let water = "3,200 m³";
-  let waterStatus = cityData?.networks?.water || "100% capacity";
-  let waterColor = "text-slate-400";
-  let waterPercent = 54;
+  // Base Status and Colors
+  let aqiStatus = "Excellent"; let aqiColor = "text-emerald-400";
+  let co2Status = "Greenhouse Index"; let co2Color = "text-emerald-400";
+  let energyStatus = "98% capacity"; let energyColor = "text-cyan-400";
+  let waterStatus = "100% capacity"; let waterColor = "text-slate-400";
 
   // SDG Reactivity
-  if (!sdg13Active) {
-    co2 = "480 ppm"; co2Status = "Warning"; co2Color = "text-yellow-500"; co2Percent = 40;
-  }
-  if (!sdg7Active) {
-    energy = "42.1%"; energyStatus = "Capacity Dropping"; energyColor = "text-yellow-500"; energyPercent = 42;
-  }
-  if (!sdg6Active) {
-    water = "1,100 m³"; waterStatus = "Shortage Detected"; waterColor = "text-yellow-500"; waterPercent = 20;
-  }
+  if (!sdg13Active) { targetCo2 = 480; co2Status = "Warning"; co2Color = "text-yellow-500"; }
+  if (!sdg7Active) { targetEnergy = 42.1; energyStatus = "Capacity Dropping"; energyColor = "text-yellow-500"; }
+  if (!sdg6Active) { targetWater = 1100; waterStatus = "Shortage Detected"; waterColor = "text-yellow-500"; }
 
   // Disaster Reactivity (Overrides SDGs)
   if (disasterScenario === "pollution") {
-    aqi = "210 AQI"; aqiStatus = "Hazardous"; aqiColor = "text-red-500"; aqiPercent = 10;
+    targetAqi = 210; aqiStatus = "Hazardous"; aqiColor = "text-red-500";
   } else if (disasterScenario === "flood" || disasterScenario === "rainfall") {
-    water = "9,800 m³"; waterStatus = "CRITICAL OVERFLOW"; waterColor = "text-red-500"; waterPercent = 100;
+    targetWater = 9800; waterStatus = "CRITICAL OVERFLOW"; waterColor = "text-red-500";
   } else if (disasterScenario === "earthquake") {
-    energy = "12.4%"; energyStatus = "Grid Failure"; energyColor = "text-red-500"; energyPercent = 12;
-    water = "400 m³"; waterStatus = "Pipe Bursts"; waterColor = "text-red-500"; waterPercent = 5;
+    targetEnergy = 12.4; energyStatus = "Grid Failure"; energyColor = "text-red-500";
+    targetWater = 400; waterStatus = "Pipe Bursts"; waterColor = "text-red-500";
   } else if (disasterScenario === "heatwave") {
-    energy = "98.9%"; energyStatus = "Grid Overload"; energyColor = "text-red-500"; energyPercent = 99;
-    water = "5,400 m³"; waterStatus = "High Demand"; waterColor = "text-orange-500"; waterPercent = 80;
+    targetEnergy = 98.9; energyStatus = "Grid Overload"; energyColor = "text-red-500";
+    targetWater = 5400; waterStatus = "High Demand"; waterColor = "text-orange-500";
   }
+
+  // Apply Live Fluctuations
+  const currentAqi = Math.max(0, targetAqi + fluct.aqi);
+  const currentCo2 = Math.max(0, targetCo2 + fluct.co2);
+  const currentEnergy = Math.max(0, Math.min(100, targetEnergy + fluct.energy));
+  const currentWater = Math.max(0, targetWater + fluct.water);
 
   const kpis = [
     {
       title: "Air Quality Index",
-      value: aqi,
+      value: `${currentAqi} AQI`,
       status: aqiStatus,
       statusColor: aqiColor,
       icon: Wind,
-      percent: aqiPercent,
+      percent: Math.max(0, Math.min(100, 100 - (currentAqi / 300) * 100)),
     },
     {
       title: "Carbon Emissions",
-      value: co2,
+      value: `${currentCo2} ppm`,
       status: co2Status,
       statusColor: co2Color,
       icon: Leaf,
-      percent: co2Percent,
+      percent: Math.max(0, Math.min(100, 100 - (currentCo2 / 800) * 100)),
     },
     {
       title: "Renewable Energy",
-      value: energy,
+      value: `${currentEnergy.toFixed(1)}%`,
       status: energyStatus,
       statusColor: energyColor,
       icon: Zap,
-      percent: energyPercent,
+      percent: currentEnergy,
     },
     {
       title: "Water Consumption",
-      value: water,
+      value: `${currentWater.toLocaleString('en-US')} m³`,
       status: waterStatus,
       statusColor: waterColor,
       icon: Droplets,
-      percent: waterPercent,
+      percent: Math.max(0, Math.min(100, (currentWater / 10000) * 100)),
     },
   ];
 

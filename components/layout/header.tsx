@@ -8,11 +8,15 @@ import React from "react";
 export function Header() {
   const { timeOfDay, setTimeOfDay } = useWeatherStore();
   const { disasterScenario } = useSimulationStore();
+  
+  // Real-time Clock Sync is disabled per user request to allow manual control
 
-  const getTimelineLabel = (hour: number) => {
-    if (hour === 0) return "12:00 AM (Midnight)";
-    if (hour === 12) return "12:00 PM (Noon)";
-    return hour > 12 ? `${hour - 12}:00 PM` : `${hour}:00 AM`;
+  const getTimelineLabel = (time: number) => {
+    const hour = Math.floor(time);
+    const min = Math.floor((time - hour) * 60).toString().padStart(2, '0');
+    if (hour === 0) return `12:${min} AM`;
+    if (hour === 12) return `12:${min} PM (Noon)`;
+    return hour > 12 ? `${hour - 12}:${min} PM` : `${hour}:${min} AM`;
   };
 
   return (
@@ -50,9 +54,10 @@ export function Header() {
           <input
             type="range"
             min="0"
-            max="23"
+            max="24"
+            step="0.1"
             value={timeOfDay}
-            onChange={(e) => setTimeOfDay(parseInt(e.target.value))}
+            onChange={(e) => setTimeOfDay(parseFloat(e.target.value))}
             className="w-full h-1 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400 focus:outline-none"
           />
         </div>
