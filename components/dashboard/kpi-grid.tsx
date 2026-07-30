@@ -23,6 +23,8 @@ interface CityResponse {
   };
 }
 
+import { calculatePollution } from "@/three/simulation/algorithms";
+
 export function KpiGrid() {
   const { data: climateData, isLoading: climateLoading } = useQuery<ClimateResponse>({
     queryKey: ["climateData"],
@@ -34,7 +36,7 @@ export function KpiGrid() {
     queryFn: () => fetchWithApiKey("/api/city"),
   });
 
-  const { disasterScenario } = useSimulationStore();
+  const { disasterScenario, carbonScore, forestScore, renewableScore } = useSimulationStore();
   const { sdgs } = useSdgStore();
   
   // Real-time AI Sensor Fluctuations
@@ -68,26 +70,37 @@ export function KpiGrid() {
   const sdg7Active = sdgs.find(s => s.id === 7)?.isActive !== false; // Clean energy
   const sdg13Active = sdgs.find(s => s.id === 13)?.isActive !== false; // Climate action
 
-  // Base Targets
-  let targetAqi = 42;
-  let targetCo2 = 412;
-  let targetEnergy = 68.4;
-  let targetWater = 3200;
+  // AI Simulation Reactivity
+  const pollution = calculatePollution(carbonScore, forestScore);
+  
+  // Base Targets derived from AI sliders
+  let targetAqi = 15 + pollution * 285; // 15 to 300
+  let targetCo2 = 350 + carbonScore * 500; // 350 to 850
+  let targetEnergy = renewableScore * 100; // 0 to 100%
+  let targetWater = 3800 - forestScore * 1000; // 2800 to 3800
 
-  // Base Status and Colors
-  let aqiStatus = "Excellent"; let aqiColor = "text-emerald-400";
-  let co2Status = "Greenhouse Index"; let co2Color = "text-emerald-400";
-  let energyStatus = "98% capacity"; let energyColor = "text-cyan-400";
-  let waterStatus = "100% capacity"; let waterColor = "text-slate-400";
+  // Dynamic Status and Colors
+  let aqiStatus = targetAqi < 50 ? "Excellent" : targetAqi < 150 ? "Moderate" : "Hazardous";
+  let aqiColor = targetAqi < 50 ? "text-emerald-400" : targetAqi < 150 ? "text-yellow-500" : "text-red-500";
+
+  let co2Status = targetCo2 < 450 ? "Optimal" : targetCo2 < 600 ? "Warning" : "Critical";
+  let co2Color = targetCo2 < 450 ? "text-emerald-400" : targetCo2 < 600 ? "text-yellow-500" : "text-red-500";
+
+  let energyStatus = targetEnergy > 80 ? "Optimal" : targetEnergy > 40 ? "Stable" : "Grid Strain";
+  let energyColor = targetEnergy > 80 ? "text-cyan-400" : targetEnergy > 40 ? "text-amber-400" : "text-red-500";
+
+  let waterStatus = targetWater < 3000 ? "Efficient" : "High Demand";
+  let waterColor = targetWater < 3000 ? "text-blue-400" : "text-slate-400";
 
   // SDG Reactivity
-  if (!sdg13Active) { targetCo2 = 480; co2Status = "Warning"; co2Color = "text-yellow-500"; }
-  if (!sdg7Active) { targetEnergy = 42.1; energyStatus = "Capacity Dropping"; energyColor = "text-yellow-500"; }
-  if (!sdg6Active) { targetWater = 1100; waterStatus = "Shortage Detected"; waterColor = "text-yellow-500"; }
+  if (!sdg13Active) { targetCo2 += 100; co2Status = "Warning"; co2Color = "text-yellow-500"; }
+  if (!sdg7Active) { targetEnergy -= 30; energyStatus = "Capacity Dropping"; energyColor = "text-yellow-500"; }
+  if (!sdg6Active) { targetWater += 800; waterStatus = "Shortage Detected"; waterColor = "text-yellow-500"; }
 
-  // Disaster Reactivity (Overrides SDGs)
+  // Disaster Reactivity (Overrides SDGs & AI)
   if (disasterScenario === "pollution") {
-    targetAqi = 210; aqiStatus = "Hazardous"; aqiColor = "text-red-500";
+    targetAqi = 280; aqiStatus = "Hazardous"; aqiColor = "text-red-500";
+    targetCo2 = 800; co2Status = "Critical"; co2Color = "text-red-500";
   } else if (disasterScenario === "flood" || disasterScenario === "rainfall") {
     targetWater = 9800; waterStatus = "CRITICAL OVERFLOW"; waterColor = "text-red-500";
   } else if (disasterScenario === "earthquake") {
@@ -99,10 +112,10 @@ export function KpiGrid() {
   }
 
   // Apply Live Fluctuations
-  const currentAqi = Math.max(0, targetAqi + fluct.aqi);
-  const currentCo2 = Math.max(0, targetCo2 + fluct.co2);
+  const currentAqi = Math.round(Math.max(0, targetAqi + fluct.aqi));
+  const currentCo2 = Math.round(Math.max(0, targetCo2 + fluct.co2));
   const currentEnergy = Math.max(0, Math.min(100, targetEnergy + fluct.energy));
-  const currentWater = Math.max(0, targetWater + fluct.water);
+  const currentWater = Math.round(Math.max(0, targetWater + fluct.water));
 
   const kpis = [
     {

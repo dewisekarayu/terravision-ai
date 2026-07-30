@@ -59,10 +59,16 @@ export function generateCityGrid(
         const isPark = Math.random() < (0.1 + distanceFromCenter * 0.3);
 
         if (isPark) {
-          trees.push({
-            position: [px, 0, pz] as [number, number, number],
-            scale: 0.4 + Math.random() * 0.4,
-          });
+          // A lush park with 3-6 trees
+          const treeCount = 3 + Math.floor(Math.random() * 4);
+          for (let i = 0; i < treeCount; i++) {
+            const offsetX = (Math.random() - 0.5) * cellSize * 0.8;
+            const offsetZ = (Math.random() - 0.5) * cellSize * 0.8;
+            trees.push({
+              position: [px + offsetX, 0, pz + offsetZ] as [number, number, number],
+              scale: 0.4 + Math.random() * 0.6,
+            });
+          }
         } else {
           // Buildings are tallest in the center, dropping off logarithmically
           const maxHeight = Math.max(1, (1.0 - distanceFromCenter) * 20);
@@ -93,6 +99,18 @@ export function generateCityGrid(
             // Make tall buildings slightly thinner for realism
             scale: [cellSize * (height > 12 ? 0.7 : 0.8), height, cellSize * (height > 12 ? 0.7 : 0.8)] as [number, number, number],
             color,
+          });
+        }
+      } else {
+        // Empty spaces! The user requested to fill empty spaces with trees
+        // Let's spawn 1-3 trees to make it a very green city
+        const treeCount = 1 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < treeCount; i++) {
+          const offsetX = (Math.random() - 0.5) * cellSize * 0.7;
+          const offsetZ = (Math.random() - 0.5) * cellSize * 0.7;
+          trees.push({
+            position: [px + offsetX, 0, pz + offsetZ] as [number, number, number],
+            scale: 0.3 + Math.random() * 0.5,
           });
         }
       }

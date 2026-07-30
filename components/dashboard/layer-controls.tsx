@@ -29,16 +29,21 @@ export function LayerControls() {
         {layerItems.map((layer) => {
           const Icon = layer.icon;
           const isActive = layers[layer.id];
+          const isLocked = layer.id === "electricity" && isActive;
 
           return (
             <button
               key={layer.id}
-              onClick={() => toggleLayer(layer.id)}
+              onClick={() => {
+                if (isLocked) return; // Prevent turning off Power Network
+                toggleLayer(layer.id);
+              }}
               className={cn(
                 "flex items-center justify-between px-4 py-3.5 rounded-xl border text-sm font-semibold tracking-wide transition-all duration-200",
                 isActive
                   ? "bg-slate-800/80 border-cyan-500 text-white shadow-[0_0_15px_rgba(6,182,212,0.15)]"
-                  : "bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200"
+                  : "bg-slate-950/40 border-slate-800 text-slate-400 hover:text-slate-200",
+                isLocked && "cursor-not-allowed opacity-90"
               )}
             >
               <div className="flex items-center gap-2">
@@ -48,13 +53,15 @@ export function LayerControls() {
               <div
                 className={cn(
                   "w-8 h-4 rounded-full relative transition-all duration-300",
-                  isActive ? "bg-cyan-500" : "bg-slate-800"
+                  isActive ? "bg-cyan-500" : "bg-slate-800",
+                  isLocked && "bg-emerald-600 shadow-[0_0_10px_rgba(5,150,105,0.5)]"
                 )}
               >
                 <div
                   className={cn(
                     "w-3.5 h-3.5 rounded-full bg-slate-950 absolute top-0.5 transition-all duration-300",
-                    isActive ? "right-0.5" : "left-0.5"
+                    isActive ? "right-0.5" : "left-0.5",
+                    isLocked && "bg-slate-900"
                   )}
                 />
               </div>

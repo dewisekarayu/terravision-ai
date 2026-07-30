@@ -3,13 +3,14 @@ import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useWeatherStore } from '../../stores/useWeatherStore';
 import { useSimulationStore } from '../../stores/useSimulationStore';
+import { calculatePollution } from '../../simulation/algorithms';
 
 const reusableColor = new THREE.Color();
 
 export function DynamicFog() {
   const { scene } = useThree();
   const { weatherType, timeOfDay } = useWeatherStore();
-  const { disasterScenario } = useSimulationStore();
+  const { disasterScenario, carbonScore, forestScore } = useSimulationStore();
 
 // Define color stops once outside the component to prevent massive garbage collection every frame
 const SKY_STOPS = [
@@ -81,19 +82,31 @@ const SKY_STOPS = [
         reusableColor.lerp(new THREE.Color("#52525b"), 1.0 - spaceBlend); 
         targetDensity = 0.06; 
       } else {
-        // Normal weather logic
+        // AI Simulation: Real-time Pollution Overlay
+        const pollution = calculatePollution(carbonScore, forestScore);
+        
+        if (pollution > 0) {
+          // As pollution goes from 0 to 1, the sky gets more gray/brown and thicker
+          const smogColor = new THREE.Color("#52525b"); // dark zinc
+          // Mix smog based on pollution severity
+          reusableColor.lerp(smogColor, pollution * 0.95 * (1.0 - spaceBlend));
+          // Increase fog density heavily based on pollution
+          targetDensity += pollution * 0.05; 
+        }
+
+        // Normal weather logic applies on top
         switch (weatherType) {
           case 'rain':
             reusableColor.lerp(new THREE.Color("#1e293b"), 1.0 - spaceBlend); 
-            targetDensity = 0.008;
+            targetDensity = Math.max(targetDensity, 0.008);
             break;
           case 'storm':
             reusableColor.lerp(new THREE.Color("#0f172a"), 1.0 - spaceBlend); 
-            targetDensity = 0.015;
+            targetDensity = Math.max(targetDensity, 0.015);
             break;
           case 'fog':
             reusableColor.lerp(new THREE.Color("#94a3b8"), 1.0 - spaceBlend); 
-            targetDensity = 0.02;
+            targetDensity = Math.max(targetDensity, 0.02);
             break;
           default:
             break;

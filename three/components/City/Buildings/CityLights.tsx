@@ -1,9 +1,12 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
+import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import { useCityStore } from '../../../stores/useCityStore';
+import { useSimulationStore } from '../../../stores/useSimulationStore';
 
 export function CityLights() {
   const { cityLayoutData } = useCityStore();
+  const materialRef = useRef<THREE.PointsMaterial>(null);
 
   // Create a soft glowing circular texture for the lights instead of hard squares
   const lightTexture = useMemo(() => {
@@ -67,6 +70,23 @@ export function CityLights() {
     return [new Float32Array(posArray), new Float32Array(colArray)];
   }, [cityLayoutData]);
 
+  useFrame(() => {
+    if (materialRef.current) {
+      const { renewableScore } = useSimulationStore.getState();
+      
+      // If renewable is 0 (fossil fuels), lights are dim orange/yellow
+      // If renewable is 1 (clean energy), lights are bright cyan/white
+      const fossilColor = new THREE.Color("#fb923c");
+      const cleanColor = new THREE.Color("#22d3ee");
+      
+      // Lerp the global tint of the points
+      materialRef.current.color.lerpColors(fossilColor, cleanColor, renewableScore);
+      
+      // Renewable energy makes the city visually brighter!
+      materialRef.current.opacity = 0.4 + renewableScore * 0.6;
+    }
+  });
+
   if (positions.length === 0 || !lightTexture) return null;
 
   return (
@@ -86,6 +106,7 @@ export function CityLights() {
         />
       </bufferGeometry>
       <pointsMaterial 
+        ref={materialRef}
         size={1.2} 
         vertexColors 
         transparent 

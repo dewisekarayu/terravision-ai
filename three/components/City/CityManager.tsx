@@ -5,6 +5,7 @@ import { InstancedBuildings } from './Buildings/InstancedBuildings';
 import { CityLights } from './Buildings/CityLights';
 import { InstancedTrees } from './Vegetation/InstancedTrees';
 import { InstancedRoads } from './Infrastructure/InstancedRoads';
+import { InfrastructureOverlays } from './Infrastructure/InfrastructureOverlays';
 import { MovingTraffic } from './Infrastructure/MovingTraffic';
 import { useCameraStore } from '../../stores/useCameraStore';
 import * as THREE from 'three';
@@ -59,6 +60,7 @@ export function CityManager() {
       <InstancedTrees />
       <InstancedRoads />
       <MovingTraffic />
+      <InfrastructureOverlays />
     </group>
   );
 }
