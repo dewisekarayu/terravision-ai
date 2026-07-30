@@ -7,16 +7,16 @@ export async function GET(request: NextRequest) {
 
   return NextResponse.json({
     status: "operational",
-    city: "Metropolis-DX1",
+    city: "Jakarta, Indonesia",
     districts: [
-      { id: "downtown", name: "Downtown Core", population: 24500, greenCoverage: 0.14 },
-      { id: "residential-a", name: "Residential North", population: 12200, greenCoverage: 0.38 },
-      { id: "industrial-west", name: "Industrial Zone", population: 1800, greenCoverage: 0.05 },
+      { id: "jkt-pusat", name: "Jakarta Pusat", population: 1125000, greenCoverage: 0.12 },
+      { id: "jkt-selatan", name: "Jakarta Selatan", population: 2280000, greenCoverage: 0.28 },
+      { id: "jkt-utara", name: "Jakarta Utara", population: 1800000, greenCoverage: 0.04 },
     ],
     networks: {
-      electricity: "98% capacity",
-      water: "100% capacity",
-      internet: "99.2% uptime",
+      electricity: `${Math.floor(92 + (Math.random() * 4 - 2))}% capacity`,
+      water: `${Math.floor(85 + (Math.random() * 4 - 2))}% capacity`,
+      internet: "99.1% uptime",
     },
   });
 }

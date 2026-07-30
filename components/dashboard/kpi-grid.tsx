@@ -8,53 +8,29 @@ import { fetchWithApiKey } from "@/lib/fetcher";
 import { useSimulationStore } from "@/three/stores/useSimulationStore";
 import { useSdgStore } from "@/store/useSdgStore";
 
-interface ClimateResponse {
-  sensors: {
-    co2Level: string;
-    temperature: string;
-    humidity: string;
-  };
-}
 
-interface CityResponse {
-  networks: {
-    electricity: string;
-    water: string;
-  };
-}
 
 import { calculatePollution } from "@/three/simulation/algorithms";
 
 export function KpiGrid() {
-  const { data: climateData, isLoading: climateLoading } = useQuery<ClimateResponse>({
-    queryKey: ["climateData"],
-    queryFn: () => fetchWithApiKey("/api/climate"),
-  });
-
-  const { data: cityData, isLoading: cityLoading } = useQuery<CityResponse>({
-    queryKey: ["cityData"],
-    queryFn: () => fetchWithApiKey("/api/city"),
+  const { data: realTimeData, isLoading } = useQuery({
+    queryKey: ["realTimeKpiData"],
+    queryFn: async () => {
+      const [weatherRes, aqiRes] = await Promise.all([
+        fetch("https://api.open-meteo.com/v1/forecast?latitude=-6.2088&longitude=106.8456&current=temperature_2m,wind_speed_10m"),
+        fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-6.2088&longitude=106.8456&current=european_aqi,carbon_monoxide")
+      ]);
+      const weather = await weatherRes.json();
+      const aqi = await aqiRes.json();
+      return { weather: weather.current, aqi: aqi.current };
+    },
+    refetchInterval: 60000,
   });
 
   const { disasterScenario, carbonScore, forestScore, renewableScore } = useSimulationStore();
   const { sdgs } = useSdgStore();
   
-  // Real-time AI Sensor Fluctuations
-  const [fluct, setFluct] = React.useState({ aqi: 0, co2: 0, energy: 0, water: 0 });
-
-  React.useEffect(() => {
-    const interval = setInterval(() => {
-      setFluct({
-        aqi: Math.floor(Math.random() * 5) - 2,
-        co2: Math.floor(Math.random() * 9) - 4,
-        energy: (Math.random() * 0.8) - 0.4,
-        water: Math.floor(Math.random() * 40) - 20,
-      });
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (climateLoading || cityLoading) {
+  if (isLoading) {
     return (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 h-[92px]">
         {[...Array(4)].map((_, i) => (
@@ -73,11 +49,17 @@ export function KpiGrid() {
   // AI Simulation Reactivity
   const pollution = calculatePollution(carbonScore, forestScore);
   
-  // Base Targets derived from AI sliders
-  let targetAqi = 15 + pollution * 285; // 15 to 300
-  let targetCo2 = 350 + carbonScore * 500; // 350 to 850
-  let targetEnergy = renewableScore * 100; // 0 to 100%
-  let targetWater = 3800 - forestScore * 1000; // 2800 to 3800
+  // Base Targets derived from Real-Time API Data + AI Sliders
+  // If API data isn't loaded yet, fallback to some defaults
+  const baseAqi = realTimeData?.aqi?.european_aqi || 45;
+  const baseCo2 = realTimeData?.aqi?.carbon_monoxide ? realTimeData.aqi.carbon_monoxide / 10 : 352;
+  const baseTemp = realTimeData?.weather?.temperature_2m || 32;
+  const baseWind = realTimeData?.weather?.wind_speed_10m || 5;
+
+  let targetAqi = baseAqi + pollution * 150; // Base AQI + slider effects
+  let targetCo2 = baseCo2 + carbonScore * 200 - forestScore * 50;
+  let targetEnergy = 40 + baseWind * 2 + renewableScore * 40; // Wind helps renewable energy
+  let targetWater = (baseTemp * 150) + 1000 - forestScore * 500;
 
   // Dynamic Status and Colors
   let aqiStatus = targetAqi < 50 ? "Excellent" : targetAqi < 150 ? "Moderate" : "Hazardous";
@@ -111,11 +93,11 @@ export function KpiGrid() {
     targetWater = 5400; waterStatus = "High Demand"; waterColor = "text-orange-500";
   }
 
-  // Apply Live Fluctuations
-  const currentAqi = Math.round(Math.max(0, targetAqi + fluct.aqi));
-  const currentCo2 = Math.round(Math.max(0, targetCo2 + fluct.co2));
-  const currentEnergy = Math.max(0, Math.min(100, targetEnergy + fluct.energy));
-  const currentWater = Math.round(Math.max(0, targetWater + fluct.water));
+  // Apply Final Bounds
+  const currentAqi = Math.round(Math.max(0, targetAqi));
+  const currentCo2 = Math.round(Math.max(0, targetCo2));
+  const currentEnergy = Math.max(0, Math.min(100, targetEnergy));
+  const currentWater = Math.round(Math.max(0, targetWater));
 
   const kpis = [
     {

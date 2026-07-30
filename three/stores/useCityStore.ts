@@ -11,6 +11,7 @@ export interface CityLayout {
   buildings: { position: [number, number, number]; scale: [number, number, number]; color: string }[];
   trees: { position: [number, number, number]; scale: number }[];
   roads: { position: [number, number, number]; rotation: [number, number, number]; scale: [number, number, number] }[];
+  monasPosition?: [number, number, number];
 }
 
 interface CityState {

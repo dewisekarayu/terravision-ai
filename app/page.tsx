@@ -30,7 +30,7 @@ export default function LandingPage() {
             TERRAVISION AI
           </h1>
           <p className="text-sm md:text-lg text-cyan-400 font-bold tracking-widest uppercase">
-            Smart City Digital Twin Operations
+            Jakarta, Indonesia Digital Twin Operations
           </p>
         </motion.div>
 

@@ -4,21 +4,21 @@ import React from "react";
 import { GlassCard } from "./glass-card";
 import { BrainCircuit, ShieldCheck, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { fetchWithApiKey } from "@/lib/fetcher";
 
-interface AiResponse {
-  predictions: {
-    flood: number;
-    heatwave: number;
-    pollution: number;
-  };
-  mitigation: string;
-}
 
 export function AiPredictor() {
-  const { data: aiData, isLoading } = useQuery<AiResponse>({
-    queryKey: ["aiPredictions"],
-    queryFn: () => fetchWithApiKey("/api/ai"),
+  const { data: realTimeData, isLoading } = useQuery({
+    queryKey: ["realTimePredictionData"],
+    queryFn: async () => {
+      const [weatherRes, aqiRes] = await Promise.all([
+        fetch("https://api.open-meteo.com/v1/forecast?latitude=-6.2088&longitude=106.8456&current=temperature_2m,precipitation,weather_code"),
+        fetch("https://air-quality-api.open-meteo.com/v1/air-quality?latitude=-6.2088&longitude=106.8456&current=european_aqi")
+      ]);
+      const weather = await weatherRes.json();
+      const aqi = await aqiRes.json();
+      return { weather: weather.current, aqi: aqi.current };
+    },
+    refetchInterval: 60000,
   });
 
   if (isLoading) {
@@ -29,15 +29,30 @@ export function AiPredictor() {
     );
   }
 
-  const floodProb = aiData ? `${Math.round(aiData.predictions.flood * 100)}%` : "74%";
-  const heatwaveRisk = aiData ? `${Math.round(aiData.predictions.heatwave * 100)}%` : "28%";
-  const pollutionTrend = aiData ? `${Math.round(aiData.predictions.pollution * 100)}%` : "65%";
-  const actionPlan = aiData?.mitigation || "Activate flood barriers in Lowlands Zone-B; redirect traffic routing to elevated highway sections.";
+  // Calculate real-world risk based on actual data
+  const temp = realTimeData?.weather?.temperature_2m || 30;
+  const precip = realTimeData?.weather?.precipitation || 0;
+  const aqi = realTimeData?.aqi?.european_aqi || 50;
+
+  // Simple heuristic for realistic probabilities
+  const floodRisk = Math.min(100, Math.max(5, precip * 10 + 5)); // 0mm = 5%, 10mm = 105%
+  const heatRisk = Math.min(100, Math.max(5, (temp - 30) * 15 + 10)); // 30C = 10%, 36C = 100%
+  const polRisk = Math.min(100, Math.max(5, (aqi / 150) * 100)); // 150 AQI = 100%
+
+  const floodProb = `${Math.round(floodRisk)}%`;
+  const heatwaveRisk = `${Math.round(heatRisk)}%`;
+  const pollutionTrend = `${Math.round(polRisk)}%`;
+  
+  // Determine biggest real threat for action plan
+  let actionPlan = "Normal operations. Monitor localized drainage in low-lying areas.";
+  if (floodRisk > 70) actionPlan = "High precipitation detected. Activate flood barriers in Pluit and warn citizens near Ciliwung river.";
+  else if (heatRisk > 70) actionPlan = "Heatwave conditions detected. Activate cooling centers and issue public health warnings for vulnerable groups.";
+  else if (polRisk > 70) actionPlan = "Hazardous air quality. Restrict heavy vehicle traffic in central district and advise indoor activities.";
 
   const predictions = [
-    { hazard: "Flood Prob.", conf: floodProb, level: aiData && aiData.predictions.flood > 0.5 ? "High Alert" : "Normal", color: "text-amber-400" },
-    { hazard: "Heatwave Risk", conf: heatwaveRisk, level: "Low Risk", color: "text-emerald-400" },
-    { hazard: "Air Pollution", conf: pollutionTrend, level: "Moderate", color: "text-cyan-400" },
+    { hazard: "Flood Prob.", conf: floodProb, level: floodRisk > 60 ? "High Alert" : "Normal", color: floodRisk > 60 ? "text-amber-400" : "text-emerald-400" },
+    { hazard: "Heatwave Risk", conf: heatwaveRisk, level: heatRisk > 60 ? "High Risk" : "Low Risk", color: heatRisk > 60 ? "text-red-400" : "text-emerald-400" },
+    { hazard: "Air Pollution", conf: pollutionTrend, level: polRisk > 60 ? "Hazardous" : polRisk > 30 ? "Moderate" : "Good", color: polRisk > 60 ? "text-red-400" : polRisk > 30 ? "text-cyan-400" : "text-emerald-400" },
   ];
 
   return (

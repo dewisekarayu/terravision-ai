@@ -9,10 +9,10 @@ export async function GET(request: NextRequest) {
     status: "online",
     model: "TerraVision AI Prediction Core",
     predictions: {
-      flood: 0.74,
-      heatwave: 0.28,
-      pollution: 0.65,
+      flood: 0.82,
+      heatwave: 0.35,
+      pollution: 0.78,
     },
-    mitigation: "Activate flood barriers in Lowlands Zone-B; redirect traffic routing.",
+    mitigation: "Activate flood barriers in Pluit; redirect traffic routing to elevated sections of inner ring road.",
   });
 }

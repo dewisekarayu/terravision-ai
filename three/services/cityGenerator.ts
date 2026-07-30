@@ -8,6 +8,7 @@ export function generateCityGrid(
   const buildings = [];
   const trees = [];
   const roads = [];
+  let monasPosition: [number, number, number] | undefined;
 
   const offset = (gridSize * cellSize) / 2;
 
@@ -54,9 +55,11 @@ export function generateCityGrid(
       // Downtown is denser, suburbs are sparser
       const localDensity = density * Math.max(0.2, 1.0 - distanceFromCenter * 0.5);
 
-      if (Math.random() < localDensity) {
+      const isTallestTower = (x === Math.floor(gridSize / 2) && z === Math.floor(gridSize / 2));
+
+      if (Math.random() < localDensity || isTallestTower) {
         // More parks in suburbs, fewer in downtown
-        const isPark = Math.random() < (0.1 + distanceFromCenter * 0.3);
+        const isPark = !isTallestTower && Math.random() < (0.1 + distanceFromCenter * 0.3);
 
         if (isPark) {
           // A lush park with 3-6 trees
@@ -71,8 +74,8 @@ export function generateCityGrid(
           }
         } else {
           // Buildings are tallest in the center, dropping off logarithmically
-          const maxHeight = Math.max(1, (1.0 - distanceFromCenter) * 20);
-          const height = 1 + Math.random() * maxHeight + Math.random() * 2; // Random variation
+          const maxHeight = Math.max(4, (1.0 - distanceFromCenter) * 15);
+          let height = 2 + Math.random() * maxHeight + Math.random() * 2; // Random variation
           
           // Realistic building colors (Glass, Concrete, Steel, Brick)
           const realisticPalettes = [
@@ -86,20 +89,25 @@ export function generateCityGrid(
           
           // Taller buildings are more likely to be glass/steel
           let color = realisticPalettes[Math.floor(Math.random() * realisticPalettes.length)];
-          if (height > 10 && Math.random() > 0.3) {
-             // Force glass/steel for skyscrapers
-             color = Math.random() > 0.5 ? "#38bdf8" : "#94a3b8";
-          } else if (height < 4 && Math.random() > 0.7) {
-             // Sometimes brick/brown for small buildings
-             color = "#d6d3d1"; // Stone/Brownish
-          }
+          
+          if (isTallestTower) {
+            monasPosition = [px, 0, pz];
+          } else {
+            if (height > 10 && Math.random() > 0.3) {
+               // Force glass/steel for skyscrapers
+               color = Math.random() > 0.5 ? "#38bdf8" : "#94a3b8";
+            } else if (height < 4 && Math.random() > 0.7) {
+               // Sometimes brick/brown for small buildings
+               color = "#d6d3d1"; // Stone/Brownish
+            }
 
-          buildings.push({
-            position: [px, height / 2, pz] as [number, number, number],
-            // Make tall buildings slightly thinner for realism
-            scale: [cellSize * (height > 12 ? 0.7 : 0.8), height, cellSize * (height > 12 ? 0.7 : 0.8)] as [number, number, number],
-            color,
-          });
+            buildings.push({
+              position: [px, height / 2, pz] as [number, number, number],
+              // Make tall buildings slightly thinner for realism
+              scale: [cellSize * (height > 20 ? 0.7 : 0.8), height, cellSize * (height > 20 ? 0.7 : 0.8)] as [number, number, number],
+              color,
+            });
+          }
         }
       } else {
         // Empty spaces! The user requested to fill empty spaces with trees
@@ -117,5 +125,5 @@ export function generateCityGrid(
     }
   }
 
-  return { buildings, trees, roads };
+  return { buildings, trees, roads, monasPosition };
 }

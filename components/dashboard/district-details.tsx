@@ -10,12 +10,12 @@ export function DistrictDetails() {
 
   if (!selectedDistrict) return null;
 
-  const isDowntown = selectedDistrict.includes("0") || selectedDistrict.includes("1");
-  const population = isDowntown ? "24,500 residents" : "12,200 residents";
-  const floodRisk = isDowntown ? "Low (12%)" : "Medium (45%)";
-  const aqi = isDowntown ? "64 (Moderate)" : "28 (Good)";
-  const temp = isDowntown ? "29.4 °C" : "27.2 °C";
-  const greenCover = isDowntown ? "14.2%" : "38.5%";
+  const isDowntown = selectedDistrict.includes("pusat") || selectedDistrict.includes("selatan");
+  const population = isDowntown ? "1.12 - 2.28M residents" : "1.8M residents";
+  const floodRisk = isDowntown ? "Medium (45%)" : "High (82%)";
+  const aqi = isDowntown ? "64 (Moderate)" : "112 (Unhealthy)";
+  const temp = isDowntown ? "30.4 °C" : "31.2 °C";
+  const greenCover = isDowntown ? "12 - 28%" : "4%";
 
   return (
     <GlassCard className="relative flex flex-col gap-4 border border-cyan-500/30">

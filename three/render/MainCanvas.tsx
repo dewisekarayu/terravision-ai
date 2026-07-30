@@ -8,6 +8,7 @@ import { useWeatherStore } from "../stores/useWeatherStore";
 import { usePerformanceStore } from "../stores/usePerformanceStore";
 import { EarthMesh } from "../components/Earth/EarthMesh";
 import { CameraController } from "../components/Cinematic/CameraController";
+import { WASDControls } from "../components/Cinematic/WASDControls";
 import { Effects } from "../postprocessing/Effects";
 import { PrecipitationSystem } from "../components/Weather/PrecipitationSystem";
 import { DynamicFog } from "../components/Weather/DynamicFog";
@@ -41,6 +42,7 @@ const getSunColor = (time: number) => {
 };
 
 export function MainCanvas() {
+  const controlsRef = React.useRef(null);
   const { timeOfDay } = useWeatherStore();
   const { setDpr, setFps, setLowEnd, dpr } = usePerformanceStore();
 
@@ -86,18 +88,17 @@ export function MainCanvas() {
     <div className="w-full h-full relative rounded-2xl overflow-hidden border border-slate-800/40 bg-slate-950/80">
       <Canvas
         shadows
-        dpr={dpr}
+        dpr={Math.min(dpr, 1.5)}
         gl={{ 
           antialias: true, 
           alpha: false, 
-          preserveDrawingBuffer: true,
           powerPreference: "high-performance",
           toneMapping: THREE.ACESFilmicToneMapping,
           toneMappingExposure: 1.2,
         }}
       >
         <PerformanceMonitor
-          onIncline={() => setDpr(2)}
+          onIncline={() => setDpr(1.5)}
           onDecline={() => {
             setDpr(1);
             setLowEnd(true);
@@ -107,11 +108,19 @@ export function MainCanvas() {
           <PerspectiveCamera makeDefault position={[50, 45, 50]} fov={45} />
           
           <OrbitControls
+            ref={controlsRef}
             enableDamping
             dampingFactor={0.05}
             maxPolarAngle={Math.PI / 2.1}
             minDistance={10}
             maxDistance={120}
+            enableZoom={true}
+            enablePan={false}
+            mouseButtons={{
+              LEFT: THREE.MOUSE.NONE,
+              MIDDLE: THREE.MOUSE.DOLLY,
+              RIGHT: THREE.MOUSE.ROTATE
+            }}
           />
 
           <ambientLight intensity={ambientIntensity} color={ambientColor} />
@@ -121,8 +130,8 @@ export function MainCanvas() {
             position={[lightX, lightY, sunZ]}
             intensity={sunIntensity}
             color={sunColor}
-            shadow-mapSize-width={2048}
-            shadow-mapSize-height={2048}
+            shadow-mapSize-width={512}
+            shadow-mapSize-height={512}
             shadow-camera-far={250}
             shadow-camera-left={-60}
             shadow-camera-right={60}
@@ -137,12 +146,13 @@ export function MainCanvas() {
           </Suspense>
 
           <CameraController />
+          <WASDControls controlsRef={controlsRef} />
           <DynamicFog />
           <PrecipitationSystem />
           <FloodWater />
           
           {/* Enable stats to monitor performance in dev mode */}
-          {process.env.NODE_ENV === "development" && <Stats className="!absolute !right-0 !left-auto" />}
+          {process.env.NODE_ENV === "development" && <Stats className="!absolute !right-0 !left-auto !scale-[0.6] !origin-top-right !opacity-50 pointer-events-none mt-2 mr-2" />}
         </PerformanceMonitor>
       </Canvas>
     </div>

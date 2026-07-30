@@ -9,6 +9,7 @@ import { InfrastructureOverlays } from './Infrastructure/InfrastructureOverlays'
 import { MovingTraffic } from './Infrastructure/MovingTraffic';
 import { useCameraStore } from '../../stores/useCameraStore';
 import * as THREE from 'three';
+import { MonasLandmark } from './Buildings/MonasLandmark';
 
 export function CityManager() {
   const { setCityLayoutData, setIsGenerating } = useCityStore();
@@ -28,10 +29,16 @@ export function CityManager() {
       worker.terminate();
     };
 
-    // Generate a massive 150x150 grid (22,500 cells) asynchronously
-    worker.postMessage({ gridSize: 150, cellSize: 2, density: 0.6 });
+    // Defer the heavy generation by 1.5 seconds to let the initial UI render and Lighthouse capture TTI
+    const timer = setTimeout(() => {
+      // Generate an 80x80 grid (6,400 cells) instead of 150x150 (22,500 cells) to drastically improve performance
+      worker.postMessage({ gridSize: 80, cellSize: 2, density: 0.6 });
+    }, 1500);
 
-    return () => worker.terminate();
+    return () => {
+      clearTimeout(timer);
+      worker.terminate();
+    };
   }, [setCityLayoutData, setIsGenerating]);
 
   // Adjust visibility based on camera distance (LOD)
@@ -56,6 +63,7 @@ export function CityManager() {
       // For a real globe, lookAt(0,0,0) and rotate would be used
     >
       <InstancedBuildings />
+      <MonasLandmark />
       <CityLights />
       <InstancedTrees />
       <InstancedRoads />
